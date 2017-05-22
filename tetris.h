@@ -198,22 +198,15 @@ void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRota
  ***********************************************************/
 void redrawField();
 
-/***********************************************************
- *	떨어지는 블럭을 field에 더해준다.
- *	input	: (char[][]) 블럭을 쌓을 필드
- *		  (int) 현재 블럭의 모양 ID
- *		  (int) 블럭의 회전 횟수
- *		  (int) 블럭의 Y좌표
- *		  (int) 블럭의 X좌표
- *	return	: none
- ***********************************************************/
-int addBlockToField(char field[HEIGHT][WIDTH], int shapeId, int rotation, int y, int x);
+/*
+ * Add's current block to field and calculate extra score
+ * from floor bonus
+ */
+int addBlockToFieldAndGetScore(char field[HEIGHT][WIDTH], int shapeId, int rotation, int y, int x);
 
-/***********************************************************
- *	완전히 채워진 Line을 삭제하고 점수를 매겨준다.
- *	input	: (char[][]) 완전히 채워진 line을 확인할 필드
- *	return	: (int) 삭제된 라인의 갯수에 대한 점수
- ***********************************************************/
+/*
+ * Delete full lines and calculate extra score
+ */
 int deleteLinesAndGetScore(char f[HEIGHT][WIDTH]);
 
 /***********************************************************
@@ -257,7 +250,7 @@ void drawBox(int y, int x, int height, int width);
  *		  (char) 블록을 그릴 패턴 모양
  *	return	: none
  ***********************************************************/
-void drawBlock(int y, int x, int blockID,int blockRotation,char tile);
+void drawBlock(int y, int x, int blockID,int blockRotation,char tile, int redraw);
 
 /***********************************************************
  *	블록이 떨어질 위치를 미리 보여준다.
