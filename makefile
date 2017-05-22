@@ -13,6 +13,6 @@ $(TARGET) : $(OBJS)
 	$(CC) -o $@ $(OBJS) $(LIBS)
 
 clean :
-	rm $(OBJS) $(TARGET)
+	rm $(OBJS) $(TARGET) rank.txt
 	
 # Made with help from juice500ml :)

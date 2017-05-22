@@ -233,7 +233,7 @@ int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotation, in
  *	input	: (char[][]) 완전히 채워진 line을 확인할 필드
  *	return	: (int) 삭제된 라인의 갯수에 대한 점수
  ***********************************************************/
-int DeleteLine(char f[HEIGHT][WIDTH]);
+int deleteLinesAndGetScore(char f[HEIGHT][WIDTH]);
 
 /***********************************************************
  *	커서의 위치를 입력된 x, y의 위치로 옮겨주는 역할을 한다.
@@ -265,7 +265,7 @@ void PrintScore(int score);
  *		  (int) 박스의 넓이
  *	return	: none
  ***********************************************************/
-void DrawBox(int y,int x, int height, int width);
+void drawBox(int y, int x, int height, int width);
 
 /***********************************************************
  *	해당 좌표(y,x)에 원하는 모양의 블록을 그린다.
@@ -276,7 +276,7 @@ void DrawBox(int y,int x, int height, int width);
  *		  (char) 블록을 그릴 패턴 모양
  *	return	: none
  ***********************************************************/
-void DrawBlock(int y, int x, int blockID,int blockRotation,char tile);
+void drawBlock(int y, int x, int blockID,int blockRotation,char tile);
 
 /***********************************************************
  *	블록이 떨어질 위치를 미리 보여준다.

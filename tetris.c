@@ -34,10 +34,10 @@ int main() {
 	while(!exit) {
 		clear();
 		switch(menu()) {
-		case MENU_PLAY: play(); break;
-		case MENU_RANK: rankMenu(); break;
-		case MENU_EXIT: exit=1; break;
-		default: break;
+			case MENU_PLAY: play(); break;
+			case MENU_RANK: rankMenu(); break;
+			case MENU_EXIT: exit = 1; break;
+			default: break;
 		}
 	}
 
@@ -53,7 +53,7 @@ void InitTetris() {
 
 	DrawOutline();
 	DrawField();
-	DrawBlock(blockY,blockX,nextBlock[0],blockRotation,' ');
+	drawBlock(blockY, blockX, nextBlock[0], blockRotation, ' ');
 	DrawShadow(blockY, blockX, nextBlock[0], blockRotation);
 	DrawNextBlock(nextBlock);
 	PrintScore(score);
@@ -61,45 +61,43 @@ void InitTetris() {
 
 void DrawOutline() {	
 	int i,j;
-	/* 블럭이 떨어지는 공간의 태두리를 그린다.*/
-	DrawBox(0,0,HEIGHT,WIDTH);
+	drawBox(0,0,HEIGHT,WIDTH);
 
 	/* next block을 보여주는 공간의 태두리를 그린다.*/
 	move(BLOCK_DISPLAY_Y,WIDTH+10);
 	printw("NEXT BLOCK");
 	for (i = 0; i < BLOCK_NUM - 1; i ++) {
-		DrawBox(BLOCK_DISPLAY_Y + i * BLOCK_DISPLAY_HEIGHT + 1,WIDTH+10,4,8);
+		drawBox(BLOCK_DISPLAY_Y + i * BLOCK_DISPLAY_HEIGHT + 1,WIDTH+10,4,8);
 	}
 
 	/* score를 보여주는 공간의 태두리를 그린다.*/
 	move(BLOCK_DISPLAY_Y + (BLOCK_NUM - 1) * BLOCK_DISPLAY_HEIGHT + 1,WIDTH+10);
 	printw("SCORE");
-	DrawBox(BLOCK_DISPLAY_Y + (BLOCK_NUM - 1) * BLOCK_DISPLAY_HEIGHT + 2,WIDTH+10,1,8);
+	drawBox(BLOCK_DISPLAY_Y + (BLOCK_NUM - 1) * BLOCK_DISPLAY_HEIGHT + 2,WIDTH+10,1,8);
 }
 
 int GetCommand() {
 	int command;
 	command = wgetch(stdscr);
 	switch(command) {
-	case KEY_UP:
-		break;
-	case KEY_DOWN:
-		break;
-	case KEY_LEFT:
-		break;
-	case KEY_RIGHT:
-		break;
-	case ' ':
-		// TODO: fall
-		command = FALL;
-		break;
-	case 'q':
-	case 'Q':
-		command = QUIT;
-		break;
-	default:
-		command = NOTHING;
-		break;
+		case KEY_UP:
+			break;
+		case KEY_DOWN:
+			break;
+		case KEY_LEFT:
+			break;
+		case KEY_RIGHT:
+			break;
+		case ' ':
+			command = FALL;
+			break;
+		case 'q':
+		case 'Q':
+			command = QUIT;
+			break;
+		default:
+			command = NOTHING;
+			break;
 	}
 	return command;
 }
@@ -183,7 +181,7 @@ void DrawNextBlock(int *nextBlock) {
 	}
 }
 
-void DrawBlock(int y, int x, int blockID,int blockRotation,char tile) {
+void drawBlock(int y, int x, int blockID, int blockRotation, char tile) {
 	int i,j;
 	for (i=0;i<4;i++) {
 		for (j=0;j<4;j++) {
@@ -199,7 +197,7 @@ void DrawBlock(int y, int x, int blockID,int blockRotation,char tile) {
 	move(HEIGHT,WIDTH+10);
 }
 
-void DrawBox(int y,int x, int height, int width) {
+void drawBox(int y,int x, int height, int width) {
 	int i,j;
 	move(y,x);
 	addch(ACS_ULCORNER);
@@ -234,7 +232,7 @@ void play() {
 		command = GetCommand();
 		if (ProcessCommand(command)==QUIT) {
 			alarm(0);
-			DrawBox(HEIGHT/2-1,WIDTH/2-5,1,10);
+			drawBox(HEIGHT/2-1,WIDTH/2-5,1,10);
 			move(HEIGHT/2,WIDTH/2-4);
 			printw("Good-bye!!");
 			refresh();
@@ -246,12 +244,12 @@ void play() {
 
 	alarm(0);
 	getch();
-	DrawBox(HEIGHT/2-1,WIDTH/2-5,1,10);
+	drawBox(HEIGHT/2-1,WIDTH/2-5,1,10);
 	move(HEIGHT/2,WIDTH/2-4);
 	printw("GameOver!!");
 	refresh();
 	getch();
-	getNewRank(score);
+	rankSubmitScreen(score);
 }
 
 char menu() {
@@ -310,7 +308,7 @@ void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRota
 	} 
 	// TODO
 	DrawField();
-	DrawBlock(blockY,blockX,currentBlock,blockRotation,' ');
+	drawBlock(blockY,blockX,currentBlock,blockRotation,' ');
 	DrawShadow(blockY,blockX,currentBlock, blockRotation);
 	move(HEIGHT,WIDTH+10);
 }
@@ -346,12 +344,12 @@ void BlockDown(int sig) {
 		resetBlock();
 
 		// Delete full lines and update score
-		score += DeleteLine(field);
+		score += deleteLinesAndGetScore(field);
 
 		DrawNextBlock(nextBlock);
 		PrintScore(score);
 		DrawField();
-		DrawBlock(blockY,blockX,nextBlock[0],blockRotation,' ');
+		drawBlock(blockY,blockX,nextBlock[0],blockRotation,' ');
 		DrawShadow(blockY,blockX,nextBlock[0],blockRotation);
 	}
 	timedOut=0;
@@ -373,7 +371,7 @@ int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotation, in
 }
 
 //week 1
-int DeleteLine(char f[HEIGHT][WIDTH]) {
+int deleteLinesAndGetScore(char f[HEIGHT][WIDTH]) {
 	int i,j,k;
 	int lineIsFull;
 	int count=0;
@@ -455,18 +453,4 @@ void printr(char c){
 	printw("%c", c);
 	attroff(A_REVERSE);
 }
-void getNewRank(int score) {
-	char name[RANK_NAME_LEN];
-	clear();
-	
-	move(0, 0);
-	printw("Enter your name: ");
-	refresh();
-	echo();
-	scanw("%19s", name);
-	noecho();
-
-	newRank(name, score);
-}
-
 
