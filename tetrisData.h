@@ -9,6 +9,16 @@
 #define BLOCK_WIDTH	4
 #define BLOCK_NUM	3
 
+static const int blockRotationCount[NUM_OF_SHAPE] = {
+	/*
+	2,
+	4, 4, 4, 
+	1,
+	2, 2
+	*/
+	4,4,4,4,4,4,4
+};
+
 static const char block[NUM_OF_SHAPE][NUM_OF_ROTATE][BLOCK_HEIGHT][BLOCK_WIDTH] ={
 	{/*[0][][][]					▩▩▩▩*/
 		{/*[][0][][]*/

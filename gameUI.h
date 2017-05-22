@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include "gameNode.h"
 
 
 void drawField(char field[HEIGHT][WIDTH]);
@@ -18,3 +18,5 @@ void drawShadow(int y, int x, int shapeId, int rotation);
 void drawBlockPreview(int queue[BLOCK_NUM]);
 
 void drawOutline();
+
+void drawRecommendation(GameNode *node);

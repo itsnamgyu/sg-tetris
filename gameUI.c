@@ -1,6 +1,7 @@
 #include <ncurses.h>
 #include "tetrisData.h"
 #include "gameUI.h"
+#include "gameNode.h"
 
 #define BLOCK_DISPLAY_HEIGHT	6
 #define BLOCK_DISPLAY_Y			2
@@ -131,4 +132,10 @@ void drawOutline() {
 	move(BLOCK_DISPLAY_Y + (BLOCK_NUM - 1) * BLOCK_DISPLAY_HEIGHT + 1,WIDTH+10);
 	printw("SCORE");
 	drawBox(BLOCK_DISPLAY_Y + (BLOCK_NUM - 1) * BLOCK_DISPLAY_HEIGHT + 2, WIDTH+10, 1, 8);
+}
+
+void drawRecommendation(GameNode *node) {
+	attron(COLOR_PAIR(COLOR_GREEN));
+	drawBlockOnField(node->lastY, node->lastX, node->lastShape, node->lastRotation, ' ');
+	attroff(COLOR_PAIR(COLOR_GREEN));
 }

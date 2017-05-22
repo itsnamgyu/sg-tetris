@@ -7,6 +7,7 @@
 #include <ncurses.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define COLOR_BLACK   0
 #define COLOR_RED     1
@@ -38,11 +39,12 @@ int main() {
 	// COLOR
 	start_color();
 	init_pair(COLOR_MAGENTA, COLOR_MAGENTA, COLOR_BLACK);
+	init_pair(COLOR_GREEN, COLOR_GREEN, COLOR_BLACK);
 
 	while(!exit) {
 		clear();
 		switch(menu()) {
-			case MENU_PLAY: startGame(0); break;
+			case MENU_PLAY: startGame(1); break;
 			case MENU_RANK: rankMenu(); break;
 			case MENU_EXIT: exit = 1; break;
 			default: break;

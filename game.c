@@ -6,6 +6,8 @@
 #include <signal.h>
 #include <ncurses.h>
 #include <stdlib.h>
+#include "gameNode.h"
+#include "gameAI.h"
 
 char field[HEIGHT][WIDTH];
 int queue[BLOCK_NUM];
@@ -16,6 +18,9 @@ int x;
 int score;
 int gameOver = 0;
 int timedOut;
+int gameMode;
+
+GameNode *nextMoveNode;
 
 #define BLOCK_DISPLAY_HEIGHT	6
 #define BLOCK_DISPLAY_Y			2
@@ -41,7 +46,15 @@ void popBlockQueue();
 
 
 // 
+/*
+ * Modes
+ * 0: Normal
+ * 1: Recommended
+ * 2: Auto
+ */
 void startGame(int mode) {
+	gameMode = mode;
+
 	clear();
 	act.sa_handler = blockFall;
 	sigaction(SIGALRM,&act,&oact);
@@ -51,6 +64,19 @@ void startGame(int mode) {
 	int i,j;
 
 	drawField(field);
+	if (gameMode) {
+		nextMoveNode = getNextMoveAsNode(field, queue[0]);
+		if (gameMode == 1) {
+			drawRecommendation(nextMoveNode);
+			x = nextMoveNode->lastX;
+			rotation = nextMoveNode->lastRotation;
+		} else if (gameMode == 2) {
+			x = nextMoveNode->lastX;
+			y = nextMoveNode->lastY;
+			rotation = nextMoveNode->lastRotation;
+			blockFall(0);
+		}
+	}
 	drawShadow(getMinBlockY(field, queue[0], rotation, y, x), x, queue[0], rotation);
 	drawCurrentBlock(y, x, queue[0], rotation);
 	drawBlockPreview(queue);
@@ -113,6 +139,9 @@ int processCommand() {
 	}
 
 	drawField(field);
+	if (gameMode) {
+		drawRecommendation(nextMoveNode);
+	}
 	drawShadow(getMinBlockY(field, queue[0], rotation, y, x), x, queue[0], rotation);
 	drawCurrentBlock(y, x, queue[0], rotation);
 
@@ -125,6 +154,10 @@ void blockFall(int sig) {
 	
 	if ((drawFlag = canPlaceBlock(field,queue[0],rotation,y + 1,x))) {
 		y ++;
+		if (gameMode) {
+			drawRecommendation(nextMoveNode);
+		}
+		drawShadow(getMinBlockY(field, queue[0], rotation, y, x), x, queue[0], rotation);
 		drawCurrentBlock(y, x, queue[0], rotation);
 	} else {
 		if (y == -1) {
@@ -136,11 +169,37 @@ void blockFall(int sig) {
 		popBlockQueue();
 		resetBlock();
 
+		if (gameMode) {
+			nextMoveNode = getNextMoveAsNode(field, queue[0]);
+			if (nextMoveNode) {
+				move(30, 30);
+				printw("Value: %lf", nextMoveNode->value);
+			}
+		}
+
 		drawBlockPreview(queue);
 		drawScore(score);
 		drawField(field);
+
+		if (gameMode == 1) {
+			if (nextMoveNode) {
+				drawRecommendation(nextMoveNode);
+				x = nextMoveNode->lastX;
+				rotation = nextMoveNode->lastRotation;
+			}
+		}
+
 		drawShadow(getMinBlockY(field, queue[0], rotation, y, x), x, queue[0], rotation);
 		drawCurrentBlock(y, x, queue[0], rotation);
+
+		if (gameMode == 2) {
+			if (nextMoveNode) {
+				x = nextMoveNode->lastX;
+				y = nextMoveNode->lastY;
+				rotation = nextMoveNode->lastRotation;
+				blockFall(0);
+			}
+		}
 	}
 
 	timedOut=0;
@@ -181,9 +240,3 @@ void popBlockQueue() {
 	queue[BLOCK_NUM - 1] = rand() % NUM_OF_SHAPE;
 }
 
-/*
- * Modes
- * 0: Normal
- * 1: Recommended
- * 2: Auto
- */
