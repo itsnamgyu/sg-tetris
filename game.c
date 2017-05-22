@@ -51,9 +51,24 @@ void popBlockQueue();
  * 0: Normal
  * 1: Recommended
  * 2: Auto
+ * 3: Train
  */
-void startGame(int mode) {
+int startGame(int mode) {
 	gameMode = mode;
+
+	if (gameMode == 3) {
+		resetGame();
+		initBlockQueue();
+		while ((nextMoveNode = getNextMoveAsNode(field, queue[0]))) {
+			x = nextMoveNode->lastX;
+			y = nextMoveNode->lastY;
+			rotation = nextMoveNode->lastRotation;
+			score += dropBlockAndGetScore(field, queue[0], rotation, y, x);
+			popBlockQueue();
+		}
+
+		return score;
+	}
 
 	clear();
 	act.sa_handler = blockFall;
@@ -102,7 +117,7 @@ void startGame(int mode) {
 	refresh();
 	getch();
 
-	if (submitRank) {
+	if (submitRank && gameMode != 2) {
 		rankSubmitScreen(score);
 	}
 }
@@ -140,7 +155,9 @@ int processCommand() {
 
 	drawField(field);
 	if (gameMode) {
-		drawRecommendation(nextMoveNode);
+		if (nextMoveNode) {
+			drawRecommendation(nextMoveNode);
+		}
 	}
 	drawShadow(getMinBlockY(field, queue[0], rotation, y, x), x, queue[0], rotation);
 	drawCurrentBlock(y, x, queue[0], rotation);
@@ -155,7 +172,9 @@ void blockFall(int sig) {
 	if ((drawFlag = canPlaceBlock(field,queue[0],rotation,y + 1,x))) {
 		y ++;
 		if (gameMode) {
-			drawRecommendation(nextMoveNode);
+			if (nextMoveNode) {
+				drawRecommendation(nextMoveNode);
+			}
 		}
 		drawShadow(getMinBlockY(field, queue[0], rotation, y, x), x, queue[0], rotation);
 		drawCurrentBlock(y, x, queue[0], rotation);
@@ -174,6 +193,8 @@ void blockFall(int sig) {
 			if (nextMoveNode) {
 				move(30, 30);
 				printw("Value: %lf", nextMoveNode->value);
+			} else {
+				gameOver = 1;
 			}
 		}
 

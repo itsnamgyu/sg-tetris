@@ -1,3 +1,3 @@
 #include "tetrisData.h"
 
-void startGame(int mode);
+int startGame(int mode);

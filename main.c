@@ -28,13 +28,22 @@ char menu();
 int main() {
 	int exit = 0;
 
+	srand((unsigned int)time(NULL));
+
+	int i;
+	int sum = 0;
+	int count = 50;
+	for (i = 0; i < count; ++ i) {
+		sum += startGame(3);
+	}
+	printf("%d\n", sum / count); 
+	return 0;
+
 	initscr();
 	noecho();
 	keypad(stdscr, TRUE);	
 
 	loadRank();
-
-	srand((unsigned int)time(NULL));
 
 	// COLOR
 	start_color();

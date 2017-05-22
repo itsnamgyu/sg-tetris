@@ -14,7 +14,11 @@ int getHeight(GameNode *node);
 
 int getMaxTrenchDepth(GameNode *node);
 
-int getTrenchSun(GameNode *node);
+int getTrenchSum(GameNode *node);
+
+int getMaxYDelta(GameNode *node);
+
+int getY(GameNode *node);
 
 //
 GameNode *getNextMoveAsNode(char field[HEIGHT][WIDTH], int shape) {
@@ -74,12 +78,18 @@ double getValue(GameNode *node) {
 	double bubbleWeight = -80;
 	double heightWeight = - 20;
 	double scoreWeight = 1;
-	double yWeight = - 25;
+	double yWeight = - 30;
+	double maxTrenchDepthWeight = -20;
+	double trenchSumWeight = -10;
+	double maxYDeltaWeight = -20;
 	return 
 		getNextBubbleCount(node) * bubbleWeight + 
 		getHeight(node) * heightWeight + 
 		node->score * scoreWeight + 
-		getY(node) * yWeight;
+		getY(node) * yWeight + 
+		getMaxTrenchDepth(node) * maxTrenchDepthWeight + 
+		getTrenchSum(node) * trenchSumWeight + 
+		getMaxYDelta(node) * maxYDeltaWeight;
 	
 }
 
@@ -147,12 +157,80 @@ int getY(GameNode *node) {
 }
 
 int getMaxTrenchDepth(GameNode *node) {
-	int columnIsValid;
 	int columnDepth;
-	
-	
+	int maxDepth = 0;
+	int i, j;
+	int left;
+	int right;
+
+	for (i = 0; i < WIDTH; ++ i) {
+		columnDepth = 0;
+		for (j = 0; j < HEIGHT; ++ j) {
+			if (node->field[j][i]) {
+				break;
+			} else {
+				left = (i == 0 || node->field[j][i - 1]);
+				right = (i == WIDTH - 1 || node->field[j][i + 1]);
+
+				if (left && right) {
+					columnDepth ++;
+				}
+			}
+		}
+		if (columnDepth > maxDepth) {
+			maxDepth = columnDepth;
+		}
+	}
+
+	return maxDepth;
 }
 
-int getTrenchSun(GameNode *node) {
+int getTrenchSum(GameNode *node) {
+	int trench = 0;
+	int i, j;
+	int left;
+	int right;
 
+	for (i = 0; i < WIDTH; ++ i) {
+		for (j = 0; j < HEIGHT; ++ j) {
+			if (node->field[j][i]) {
+				break;
+			} else {
+				left = (i == 0 || node->field[j][i - 1]);
+				right = (i == WIDTH - 1 || node->field[j][i + 1]);
+
+				if (left && right) {
+					trench ++;
+				}
+			}
+		}
+	}
+
+	return trench;
+}
+
+int getMaxYDelta(GameNode *node) {
+	int columnDepth;
+	int maxDepth = 0;
+	int minDepth = HEIGHT;
+	int i, j;
+
+	for (i = 0; i < WIDTH; ++ i) {
+		columnDepth = 0;
+		for (j = 0; j < HEIGHT; ++ j) {
+			if (node->field[j][i]) {
+				break;
+			} else {
+				columnDepth ++;
+			}
+		}
+		if (columnDepth > maxDepth) {
+			maxDepth = columnDepth;
+		}
+		if (columnDepth < minDepth) {
+			minDepth = columnDepth;
+		}
+	}
+
+	return maxDepth - minDepth;
 }
