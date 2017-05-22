@@ -1,14 +1,6 @@
 ﻿#include "tetris.h"
-#include "string.h"
-
-typedef struct rankNode {
-	int score;
-	char name[NAMELEN];
-	struct rankNode *next; 
-} RankNode;
-
-RankNode *rankHead;
-int rankCount;
+#include <string.h>
+#include "rank.h"
 
 int BLOCK_DISPLAY_HEIGHT = 6;
 int BLOCK_DISPLAY_Y = 2;
@@ -25,13 +17,13 @@ void retrieveNextBlock();
 
 void printr(char c);
 
-RankNode *newRankNode(int score, char *name);
-
 void getRankRange();
 
 void getRankByName();
 
 void deleteRankByIndex();
+
+void getNewRank(int score);
 
 int main() {
 	int exit = 0;
@@ -40,7 +32,7 @@ int main() {
 	noecho();
 	keypad(stdscr, TRUE);	
 
-	createRankList();
+	loadRank();
 
 	srand((unsigned int)time(NULL));
 
@@ -54,7 +46,7 @@ int main() {
 		}
 	}
 
-	writeRankFile();
+	saveRank();
 
 	endwin();
 	system("clear");
@@ -264,14 +256,14 @@ void play() {
 	printw("GameOver!!");
 	refresh();
 	getch();
-	newRank(score);
+	getNewRank(score);
 }
 
 char menu() {
-	printw("1. play\n");
-	printw("2. rank\n");
-	printw("3. recommended play\n");
-	printw("4. exit\n");
+	printw("1. Play\n");
+	printw("2. Rank\n");
+	printw("3. Recommended Play\n");
+	printw("4. Exit\n");
 	return wgetch(stdscr);
 }
 
@@ -428,30 +420,6 @@ void DrawShadow(int y, int x, int blockID,int blockRotate) {
 	}
 }
 
-void createRankList() {
-	FILE *file;
-	int i;
-	char name[NAMELEN];
-	int score;
-	RankNode *node;
-	
-	rankHead = newRankNode(0, "");
-	rankCount = 0;
-	node = rankHead;
-
-	if ((file = fopen("rank.txt", "r"))) {
-		fscanf(file, "%d", &rankCount);
-		for (i = 0; i < rankCount; ++ i) {
-			fscanf(file, "%s %d\n", name, &score);
-
-			node->next = newRankNode(score, name);
-			node = node->next;
-		}
-	}
-
-	fclose(file);
-}
-
 void rank() {
 	int range[2];
 	int index = 0;
@@ -463,9 +431,9 @@ void rank() {
 	refresh();
 
 	move(0, 0);
-	printw("1: list ranks from X to Y\n");
-	printw("2: list ranks by a specific name\n");
-	printw("3: delete a specific rank\n");
+	printw("1: List ranks #a to #b\n");
+	printw("2: List ranks from player\n");
+	printw("3: Delete a rank\n");
 
 	while (1) {
 		switch (getch()) {
@@ -474,54 +442,6 @@ void rank() {
 			case '3': deleteRankByIndex(); getch(); return;
 		}
 	}
-}
-
-void writeRankFile() {
-	FILE *file;
-	RankNode *node;
-
-	file = fopen("rank.txt", "w");
-	
-	fprintf(file, "%d\n", rankCount);
-
-	for (node = rankHead->next; node; node = node->next) {
-		fprintf(file, "%s\t%d\n", node->name, node->score);
-	}
-	
-	fclose(file);
-}
-
-void newRank(int score) {
-	char name[NAMELEN];
-	RankNode *newNode;
-	RankNode *node;
-	RankNode *lastNode;
-
-	clear();
-	
-	move(0, 0);
-	printw("Enter your name: ");
-	refresh();
-	echo();
-	scanw("%19s", name);
-	noecho();
-
-	newNode = newRankNode(score, name);
-	
-	node = rankHead->next;
-	lastNode = rankHead;
-	while (1) {
-		if (!node || node->score < score) {
-			lastNode->next = newNode;
-			newNode->next = node;
-			break;
-		}
-
-		lastNode = node;
-		node = node->next;
-	}
-
-	rankCount ++;
 }
 
 void DrawRecommend(int y, int x, int blockID,int blockRotate) {
@@ -581,107 +501,79 @@ void printr(char c){
 	attroff(A_REVERSE);
 }
 
-RankNode *newRankNode(int score, char *name){
-	RankNode* node = (RankNode*) malloc(sizeof(RankNode));
-	node->score = score;
-	strcpy(node->name, name);
-	node->next = NULL;
-
-	return node;
-}
-
 void getRankRange(){
 	int range[2];
 	int i;
 	int printed = 0;
-
 	RankNode *node;
-	range[0] = 1;
-	range[1] = rankCount;
+	RankNode *head;
+
+	range[0] = -1;
+	range[1] = -1;
 
 	echo();
-	printw("X: ");
+	printw("a: ");
 	refresh();
 	scanw("%d", range);
 
-	printw("Y: ");
+	printw("b: ");
 	refresh();
 	scanw("%d", range + 1);
 
 	noecho();
 
-
-	printw(" %-16s| %-8s\n", "name", "score");
-
-	for (i = 0; i < 27; ++ i) {
-		printw("-");
-	}
-	printw("\n");
-
-	node = rankHead->next;
-	for (i = 0; i < range[0] - 1; ++ i) {
-		if (!node) {
-			break;
+	head = getRankListByRange(range[0], range[1]);
+	if (head->next) {
+		printw(" %-16s| %-8s\n", "name", "score");
+		for (i = 0; i < 27; ++ i) {
+			printw("-");
 		}
-		node = node->next;
-	}
+		printw("\n");
 
-	for (i = 0; i < range[1] - range[0] + 1; ++ i) {
-		if (!node) {
-			break;
+		for (node = head->next; node; node = node->next) {
+			printw(" %-16s| %-8d\n", node->name, node->score);
 		}
-		printed = 1;
-		printw(" %-16s| %-8d\n", node->name, node->score);
-		node = node->next;
+	} else {
+		printw("Invalid search range\n");
 	}
-
-	if (!printed) {
-		printw("Search failure: that rank does not exist\n");
-	}
+	freeRankList(head);
 }
 
 void getRankByName() {
-	char name[NAMELEN];
+	char name[RANK_NAME_LEN];
 	int printed = 0;
 	int i;
 	RankNode *node;
+	RankNode *head;
 
-	printw("Input name: ");
+	printw("Enter name of player: ");
 	refresh();
 
 	echo();
 	scanw("%s", name);
 	noecho();
 	
-
-	printw(" %-16s| %-8s\n", "name", "score");
-
-	for (i = 0; i < 27; ++ i) {
-		printw("-");
-	}
-
-	printw("\n");
-	for (node = rankHead->next; node; node = node->next) {
-		if (!strcmp(name, node->name)) {
-			printed = 1;
-			printw(" %-16s| %-8d\n", node->name, node->score);
-
+	head = getRankListByName(name);
+	if (head->next) {
+		printw(" %-16s| %-8s\n", "name", "score");
+		for (i = 0; i < 27; ++ i) {
+			printw("-");
 		}
-	}
+		printw("\n");
 
-	if (!printed) {
-		printw("Search failure: could not find anyone with the name, %s\n", name);
+		for (node = head->next; node; node = node->next) {
+			printw(" %-16s| %-8d\n", node->name, node->score);
+		}
+	} else {
+		printw("%s is not a ranker\n", name);
 	}
+	freeRankList(head);
 }
 
 void deleteRankByIndex() {
-	int index = -1;
-	int i;
-	RankNode *node;
-	RankNode *lastNode;
-	RankNode *nextNode;
-
-	printw("Input the rank: ");
+	int index;
+	
+	printw("Enter rank #: ");
 	refresh();
 
 	echo();
@@ -689,20 +581,24 @@ void deleteRankByIndex() {
 	noecho();
 	index --;
 	
-	lastNode = rankHead;
-	node = rankHead->next;
-	if (0 <= index && index < rankCount) {
-		for (i = 0; i < index; ++ i) {
-			lastNode = node;
-			node = node->next;
-		}
-
-		nextNode = node->next;
-		free(node);
-		lastNode->next = nextNode;
-
-		printw("Result: the rank has been deleted\n");
+	if (deleteRankAt(index)) {
+		printw("Successfully deleted rank #%d\n", index + 1);
 	} else {
-		printw("Search failure: the rank is not in the list\n");
+		printw("Rank #%d does not exist\n", index + 1);
 	}
 }
+
+void getNewRank(int score) {
+	char name[RANK_NAME_LEN];
+	clear();
+	
+	move(0, 0);
+	printw("Enter your name: ");
+	refresh();
+	echo();
+	scanw("%19s", name);
+	noecho();
+
+	newRank(name, score);
+}
+
