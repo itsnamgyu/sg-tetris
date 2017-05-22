@@ -30,6 +30,7 @@ int main() {
 
 	srand((unsigned int)time(NULL));
 
+	/*
 	int i;
 	int sum = 0;
 	int count = 50;
@@ -38,6 +39,7 @@ int main() {
 	}
 	printf("%d\n", sum / count); 
 	return 0;
+	*/
 
 	initscr();
 	noecho();

@@ -26,7 +26,7 @@ void drawField(char field[HEIGHT][WIDTH]) {
 }
 
 void drawScore(int score) {
-	move(BLOCK_DISPLAY_Y + (BLOCK_NUM - 1) * BLOCK_DISPLAY_HEIGHT + 3,WIDTH+11);
+	move(BLOCK_DISPLAY_Y + (2) * BLOCK_DISPLAY_HEIGHT + 3,WIDTH+11);
 	printw("%8d",score);
 }
 
@@ -105,7 +105,7 @@ void drawShadow(int y, int x, int shapeId, int rotation) {
 void drawBlockPreview(int queue[BLOCK_NUM]) {
 	int i;
 
-	for(i = 0; i < BLOCK_NUM - 1; i ++) {
+	for(i = 0; i < 2; i ++) {
 		drawBlock(BLOCK_DISPLAY_Y + i * BLOCK_DISPLAY_HEIGHT + 2, WIDTH + 13,
 				queue[i + 1], 0, ' ', 1);
 	}
@@ -124,14 +124,14 @@ void drawOutline() {
 	// Draw preview box
 	move(BLOCK_DISPLAY_Y, WIDTH + 10);
 	printw("PREVIEW");
-	for (i = 0; i < BLOCK_NUM - 1; i ++) {
+	for (i = 0; i < 2; i ++) {
 		drawBox(BLOCK_DISPLAY_Y + i * BLOCK_DISPLAY_HEIGHT + 1,WIDTH+10,4,8);
 	}
 
 	// Draw score box
-	move(BLOCK_DISPLAY_Y + (BLOCK_NUM - 1) * BLOCK_DISPLAY_HEIGHT + 1,WIDTH+10);
+	move(BLOCK_DISPLAY_Y + (2) * BLOCK_DISPLAY_HEIGHT + 1,WIDTH+10);
 	printw("SCORE");
-	drawBox(BLOCK_DISPLAY_Y + (BLOCK_NUM - 1) * BLOCK_DISPLAY_HEIGHT + 2, WIDTH+10, 1, 8);
+	drawBox(BLOCK_DISPLAY_Y + (2) * BLOCK_DISPLAY_HEIGHT + 2, WIDTH+10, 1, 8);
 }
 
 void drawRecommendation(GameNode *node) {

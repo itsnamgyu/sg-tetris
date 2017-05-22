@@ -7,7 +7,7 @@
 #define NUM_OF_ROTATE	4
 #define BLOCK_HEIGHT	4
 #define BLOCK_WIDTH	4
-#define BLOCK_NUM	3
+#define BLOCK_NUM	20
 
 static const int blockRotationCount[NUM_OF_SHAPE] = {
 	/*

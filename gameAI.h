@@ -1,1 +1,1 @@
-GameNode *getNextMoveAsNode(char field[HEIGHT][WIDTH],int shape);
+GameNode *getNextMoveAsNode(char field[HEIGHT][WIDTH],int *shapes);

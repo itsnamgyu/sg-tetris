@@ -3,7 +3,12 @@
 #include "tetrisUtility.h"
 #include "stdlib.h"
 
-// Utility Functions
+#define BRANCH 	5
+#define DEPTH	5
+//#define TOTAL	340 // 340
+//#define TOTAL	1364 // 340
+#define TOTAL	3905// 340
+
 GameNode *dropBlockAndGetNewGameNode(char field[HEIGHT][WIDTH], int score, int shape, int y, int x, int rotation);
 
 double getValue(GameNode *node);
@@ -20,39 +25,62 @@ int getMaxYDelta(GameNode *node);
 
 int getY(GameNode *node);
 
-//
-GameNode *getNextMoveAsNode(char field[HEIGHT][WIDTH], int shape) {
-	int nextNodeCount = 0;
-	int rotation;
-	int x, y;
-	int i;
-	GameNode *maxNode = NULL;
-	GameNode *newNode;
-	
-	for (rotation = 0; rotation < blockRotationCount[shape]; ++ rotation) {
-		x = 0;
-		while (canPlaceBlock(field, shape, rotation, -1, -- x));
+GameNode **getNextMoveNodes(char field[HEIGHT][WIDTH], int shape, int count);
 
-		x ++;
-		
-		for(; canPlaceBlock(field, shape, rotation, -1, x); ++ x) {
-			y = getMinBlockY(field, shape, rotation, -1, x);
-			newNode = dropBlockAndGetNewGameNode(field, 0, shape, y, x, rotation);
-			if (!maxNode || maxNode->value < newNode->value) {
-				if (maxNode) {
-					free(maxNode);
+GameNode *getNextMoveAsNode(char field[HEIGHT][WIDTH], int* shapes) {
+	int generationSize = 1;
+	int generation = 0;
+	int nodeIndex = 0;
+	int valueSum[TOTAL];
+	int generationStart = 0;
+	GameNode *nodes[TOTAL];
+	GameNode **nextNodes;
+	GameNode *maxNode = NULL;
+	int maxValue;
+	int i, j;
+
+	for (i = 0; i < TOTAL; ++ i) {
+		valueSum[i] = 0;
+		nodes[i] = NULL;
+	}
+	
+	while(generation < DEPTH) {
+		for (i = 0; i < generationSize; ++ i) {
+			nextNodes = getNextMoveNodes(field, shapes[generation], BRANCH);
+			for (j = 0; j < BRANCH; ++ j) {
+				if (!nextNodes[j]) {
+					break;
 				}
-				maxNode = newNode;
-			} else {
-				free(newNode);
+				nodes[nodeIndex] = nextNodes[j];
+				if (generation) {
+					valueSum[nodeIndex] = valueSum[(nodeIndex - generationStart) / 4 + generationStart - generationSize] + nodes[nodeIndex]->value;
+				} else {
+					valueSum[nodeIndex] = nodes[nodeIndex]->value;
+				}
+				if (generation == DEPTH - 1) {
+					if (!maxNode || maxValue < nodes[nodeIndex]->score) {
+						maxValue = nodes[nodeIndex]->score;
+						maxNode = nodes[(nodeIndex - generationStart) / generationSize];
+					}
+				}
+				nodeIndex ++;
 			}
+			free(nextNodes);
 		}
+		generation ++;
+		generationSize *= BRANCH;
+		generationStart += generationSize;
 	}
 
+	for (i = 0; i < TOTAL; ++ i) {
+		if (nodes[i] && nodes[i] != maxNode) {
+			free(nodes[i]);
+		}
+	}
+	
 	return maxNode;
 }
 
-// 
 GameNode *dropBlockAndGetNewGameNode(char field[HEIGHT][WIDTH], int score, int shape, int y, int x, int rotation) {
 	int i, j;
 	GameNode *node = (GameNode*) malloc(sizeof(GameNode));
@@ -75,21 +103,21 @@ GameNode *dropBlockAndGetNewGameNode(char field[HEIGHT][WIDTH], int score, int s
 }
 
 double getValue(GameNode *node) {
-	double bubbleWeight = -80;
-	double heightWeight = - 20;
+	double bubbleWeight = -100;
+	double heightWeight = - 100;
 	double scoreWeight = 1;
 	double yWeight = - 30;
-	double maxTrenchDepthWeight = -20;
-	double trenchSumWeight = -10;
-	double maxYDeltaWeight = -20;
+	double maxTrenchDepthWeight = - 50;
+	double trenchSumWeight = - 10;
+	double maxYDeltaWeight = - 32;
 	return 
 		getNextBubbleCount(node) * bubbleWeight + 
-		getHeight(node) * heightWeight + 
 		node->score * scoreWeight + 
-		getY(node) * yWeight + 
 		getMaxTrenchDepth(node) * maxTrenchDepthWeight + 
-		getTrenchSum(node) * trenchSumWeight + 
-		getMaxYDelta(node) * maxYDeltaWeight;
+//		getMaxYDelta(node) * maxYDeltaWeight + 
+		getY(node) * yWeight;
+		getHeight(node) * heightWeight + 
+		getTrenchSum(node) * trenchSumWeight;
 	
 }
 
@@ -233,4 +261,44 @@ int getMaxYDelta(GameNode *node) {
 	}
 
 	return maxDepth - minDepth;
+}
+
+GameNode **getNextMoveNodes(char field[HEIGHT][WIDTH], int shape, int count) {
+	int nextNodeCount = 0;
+	int rotation;
+	int x, y;
+	int i, j;
+	GameNode *newNode;
+	GameNode **nodes = (GameNode**) malloc(sizeof(GameNode*) * count);
+
+	for (i = 0; i < count; ++ i) {
+		nodes[i] = NULL;
+	}
+	
+	for (rotation = 0; rotation < blockRotationCount[shape]; ++ rotation) {
+		x = 0;
+		while (canPlaceBlock(field, shape, rotation, -1, -- x));
+
+		x ++;
+		
+		for(; canPlaceBlock(field, shape, rotation, -1, x); ++ x) {
+			y = getMinBlockY(field, shape, rotation, -1, x);
+			newNode = dropBlockAndGetNewGameNode(field, 0, shape, y, x, rotation);
+			for (i = 0; i < count; i ++) {
+				if (!nodes[i] || nodes[i]->value < newNode->value) {
+					free(nodes[count - 1]);
+					for (j = count - 1; j > i; j --) {
+						nodes[j] = nodes[j - 1];
+					}
+					nodes[i] = newNode;
+					break;
+				}
+			}
+			if (i == count) {
+				free(newNode);
+			}
+		}
+	}
+
+	return nodes;
 }
