@@ -56,9 +56,9 @@ void popBlockQueue();
 int startGame(int mode) {
 	gameMode = mode;
 
+	/*
 	if (gameMode == 3) {
 		resetGame();
-		initBlockQueue();
 		while ((nextMoveNode = getNextMoveAsNode(field, queue))) {
 			x = nextMoveNode->lastX;
 			y = nextMoveNode->lastY;
@@ -69,12 +69,12 @@ int startGame(int mode) {
 
 		return score;
 	}
+	*/
 
 	clear();
 	act.sa_handler = blockFall;
 	sigaction(SIGALRM,&act,&oact);
 	resetGame();
-	initBlockQueue();
 
 	int submitRank = 1;
 	int i,j;
@@ -87,6 +87,7 @@ int startGame(int mode) {
 			x = nextMoveNode->lastX;
 			rotation = nextMoveNode->lastRotation;
 		} else if (gameMode == 2) {
+			drawRecommendation(nextMoveNode);
 			x = nextMoveNode->lastX;
 			y = nextMoveNode->lastY;
 			rotation = nextMoveNode->lastRotation;
@@ -124,6 +125,8 @@ int startGame(int mode) {
 	if (submitRank && gameMode != 2 && gameMode != 3) {
 		rankSubmitScreen(score);
 	}
+
+	return score;
 }
 
 int processCommand() {
@@ -194,23 +197,17 @@ void blockFall(int sig) {
 
 		if (gameMode) {
 			nextMoveNode = getNextMoveAsNode(field, queue);
-			if (nextMoveNode) {
-				move(30, 30);
-				printw("Value: %lf", nextMoveNode->value);
-			} else {
-				gameOver = 1;
-			}
+			x = nextMoveNode->lastX;
+			rotation = nextMoveNode->lastRotation;
 		}
 
 		drawBlockPreview(queue);
 		drawScore(score);
 		drawField(field);
 
-		if (gameMode == 1) {
+		if (gameMode) {
 			if (nextMoveNode) {
 				drawRecommendation(nextMoveNode);
-				x = nextMoveNode->lastX;
-				rotation = nextMoveNode->lastRotation;
 			}
 		}
 
@@ -219,10 +216,9 @@ void blockFall(int sig) {
 
 		if (gameMode == 2) {
 			if (nextMoveNode) {
-				x = nextMoveNode->lastX;
 				y = nextMoveNode->lastY;
-				rotation = nextMoveNode->lastRotation;
 				blockFall(0);
+				timedOut=0;
 			}
 		}
 	}

@@ -55,7 +55,7 @@ int main() {
 	while(!exit) {
 		clear();
 		switch(menu()) {
-			case MENU_PLAY: startGame(1); break;
+			case MENU_PLAY: startGame(2); break;
 			case MENU_RANK: rankMenu(); break;
 			case MENU_EXIT: exit = 1; break;
 			default: break;

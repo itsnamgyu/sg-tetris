@@ -9,21 +9,24 @@
 //#define TOTAL	1364 // 340
 #define TOTAL	3905// 340
 
+double bubbleWeight = -100;
+double scoreWeight = 1;
+double heightWeight = - 10;
+double yWeight = - 30;
+double maxTrenchDepthWeight = - 20;
+double trenchSumWeight = - 1;
+double maxYDeltaWeight = - 20;
+
 GameNode *dropBlockAndGetNewGameNode(char field[HEIGHT][WIDTH], int score, int shape, int y, int x, int rotation);
 
 double getValue(GameNode *node);
 
 int getNextBubbleCount(GameNode *node);
 
-int getHeight(GameNode *node);
-
-int getMaxTrenchDepth(GameNode *node);
-
-int getTrenchSum(GameNode *node);
-
-int getMaxYDelta(GameNode *node);
-
 int getY(GameNode *node);
+
+double getOther(GameNode *node);
+
 
 GameNode **getNextMoveNodes(char field[HEIGHT][WIDTH], int shape, int count);
 
@@ -103,21 +106,11 @@ GameNode *dropBlockAndGetNewGameNode(char field[HEIGHT][WIDTH], int score, int s
 }
 
 double getValue(GameNode *node) {
-	double bubbleWeight = -100;
-	double heightWeight = - 100;
-	double scoreWeight = 1;
-	double yWeight = - 30;
-	double maxTrenchDepthWeight = - 50;
-	double trenchSumWeight = - 10;
-	double maxYDeltaWeight = - 32;
 	return 
 		getNextBubbleCount(node) * bubbleWeight + 
 		node->score * scoreWeight + 
-		getMaxTrenchDepth(node) * maxTrenchDepthWeight + 
-//		getMaxYDelta(node) * maxYDeltaWeight + 
-		getY(node) * yWeight;
-		getHeight(node) * heightWeight + 
-		getTrenchSum(node) * trenchSumWeight;
+		getY(node) * yWeight +
+		getOther(node);
 	
 }
 
@@ -158,20 +151,6 @@ int getNextBubbleCount(GameNode *node) {
 	return bubble;
 }
 
-int getHeight(GameNode *node) {
-	int i, j;
-
-	for (i = 0; i < HEIGHT; ++ i) {
-		for (j = 0; j < WIDTH; ++ j) {
-			if (node->field[i][j]) {
-				return HEIGHT - i;
-			}
-		}
-	}
-	
-	return 0;
-}
-
 int getY(GameNode *node) {
 	int i, j;
 
@@ -184,71 +163,34 @@ int getY(GameNode *node) {
 	}
 }
 
-int getMaxTrenchDepth(GameNode *node) {
-	int columnDepth;
-	int maxDepth = 0;
-	int i, j;
-	int left;
-	int right;
-
-	for (i = 0; i < WIDTH; ++ i) {
-		columnDepth = 0;
-		for (j = 0; j < HEIGHT; ++ j) {
-			if (node->field[j][i]) {
-				break;
-			} else {
-				left = (i == 0 || node->field[j][i - 1]);
-				right = (i == WIDTH - 1 || node->field[j][i + 1]);
-
-				if (left && right) {
-					columnDepth ++;
-				}
-			}
-		}
-		if (columnDepth > maxDepth) {
-			maxDepth = columnDepth;
-		}
-	}
-
-	return maxDepth;
-}
-
-int getTrenchSum(GameNode *node) {
+double getOther(GameNode *node) {
 	int trench = 0;
 	int i, j;
 	int left;
 	int right;
+	int columnDepth;
+	int maxDepth = 0;
+	int minDepth = HEIGHT;
+	int maxTrench = 0;
+	int columnTrench;
+	int height = 0;
 
 	for (i = 0; i < WIDTH; ++ i) {
+		columnDepth = 0;
+		columnTrench = 0;
 		for (j = 0; j < HEIGHT; ++ j) {
 			if (node->field[j][i]) {
+				if (!height) {
+					height = HEIGHT - j;
+				}
 				break;
 			} else {
 				left = (i == 0 || node->field[j][i - 1]);
 				right = (i == WIDTH - 1 || node->field[j][i + 1]);
 
 				if (left && right) {
-					trench ++;
+					columnTrench ++;
 				}
-			}
-		}
-	}
-
-	return trench;
-}
-
-int getMaxYDelta(GameNode *node) {
-	int columnDepth;
-	int maxDepth = 0;
-	int minDepth = HEIGHT;
-	int i, j;
-
-	for (i = 0; i < WIDTH; ++ i) {
-		columnDepth = 0;
-		for (j = 0; j < HEIGHT; ++ j) {
-			if (node->field[j][i]) {
-				break;
-			} else {
 				columnDepth ++;
 			}
 		}
@@ -258,9 +200,16 @@ int getMaxYDelta(GameNode *node) {
 		if (columnDepth < minDepth) {
 			minDepth = columnDepth;
 		}
+		if (columnTrench > maxTrench) {
+			maxTrench = columnTrench;
+		}
+		trench += columnTrench;
 	}
 
-	return maxDepth - minDepth;
+	return height * heightWeight + 
+		maxTrench * maxTrenchDepthWeight +
+		trench * trenchSumWeight + 
+		(maxDepth - minDepth) * maxYDeltaWeight;
 }
 
 GameNode **getNextMoveNodes(char field[HEIGHT][WIDTH], int shape, int count) {
