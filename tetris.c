@@ -1,6 +1,7 @@
 ﻿#include "tetris.h"
 #include <string.h>
 #include "rankSystem.h"
+#include "rankMenu.h"
 
 int BLOCK_DISPLAY_HEIGHT = 6;
 int BLOCK_DISPLAY_Y = 2;
@@ -16,12 +17,6 @@ void loadBlocks();
 void retrieveNextBlock();
 
 void printr(char c);
-
-void getRankRange();
-
-void getRankByName();
-
-void deleteRankByIndex();
 
 void getNewRank(int score);
 
@@ -40,7 +35,7 @@ int main() {
 		clear();
 		switch(menu()) {
 		case MENU_PLAY: play(); break;
-		case MENU_RANK: rank(); break;
+		case MENU_RANK: rankMenu(); break;
 		case MENU_EXIT: exit=1; break;
 		default: break;
 		}
@@ -420,30 +415,6 @@ void DrawShadow(int y, int x, int blockID,int blockRotation) {
 	}
 }
 
-void rank() {
-	int range[2];
-	int index = 0;
-	int i;
-	int printed = 0;
-	RankNode *node;
-
-	clear();
-	refresh();
-
-	move(0, 0);
-	printw("1: List ranks #a to #b\n");
-	printw("2: List ranks from player\n");
-	printw("3: Delete a rank\n");
-
-	while (1) {
-		switch (getch()) {
-			case '1': getRankRange(); getch(); return;
-			case '2': getRankByName(); getch(); return;
-			case '3': deleteRankByIndex(); getch(); return;
-		}
-	}
-}
-
 void resetBlock(){
 	blockRotation=0;
 	blockY=-1;
@@ -484,94 +455,6 @@ void printr(char c){
 	printw("%c", c);
 	attroff(A_REVERSE);
 }
-
-void getRankRange(){
-	int range[2];
-	int i;
-	int printed = 0;
-	RankNode *node;
-	RankNode *head;
-
-	range[0] = -1;
-	range[1] = -1;
-
-	echo();
-	printw("a: ");
-	refresh();
-	scanw("%d", range);
-
-	printw("b: ");
-	refresh();
-	scanw("%d", range + 1);
-
-	noecho();
-
-	head = getRankListByRange(range[0], range[1]);
-	if (head->next) {
-		printw(" %-16s| %-8s\n", "name", "score");
-		for (i = 0; i < 27; ++ i) {
-			printw("-");
-		}
-		printw("\n");
-
-		for (node = head->next; node; node = node->next) {
-			printw(" %-16s| %-8d\n", node->name, node->score);
-		}
-	} else {
-		printw("Invalid search range\n");
-	}
-	freeRankList(head);
-}
-
-void getRankByName() {
-	char name[RANK_NAME_LEN];
-	int printed = 0;
-	int i;
-	RankNode *node;
-	RankNode *head;
-
-	printw("Enter name of player: ");
-	refresh();
-
-	echo();
-	scanw("%s", name);
-	noecho();
-	
-	head = getRankListByName(name);
-	if (head->next) {
-		printw(" %-16s| %-8s\n", "name", "score");
-		for (i = 0; i < 27; ++ i) {
-			printw("-");
-		}
-		printw("\n");
-
-		for (node = head->next; node; node = node->next) {
-			printw(" %-16s| %-8d\n", node->name, node->score);
-		}
-	} else {
-		printw("%s is not a ranker\n", name);
-	}
-	freeRankList(head);
-}
-
-void deleteRankByIndex() {
-	int index;
-	
-	printw("Enter rank #: ");
-	refresh();
-
-	echo();
-	scanw("%d", &index);
-	noecho();
-	index --;
-	
-	if (deleteRankAt(index)) {
-		printw("Successfully deleted rank #%d\n", index + 1);
-	} else {
-		printw("Rank #%d does not exist\n", index + 1);
-	}
-}
-
 void getNewRank(int score) {
 	char name[RANK_NAME_LEN];
 	clear();
@@ -585,4 +468,5 @@ void getNewRank(int score) {
 
 	newRank(name, score);
 }
+
 

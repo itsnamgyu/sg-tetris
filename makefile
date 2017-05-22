@@ -4,7 +4,7 @@ LIBS = -lncurses
 
 .SUFFIXES: .c .o
 
-SRCS = tetris.c rankSystem.c
+SRCS = tetris.c rankSystem.c rankMenu.c
 OBJS = $(SRCS:.c=.o)
 
 TARGET = test
