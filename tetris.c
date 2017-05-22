@@ -1,7 +1,9 @@
-﻿#include "tetris.h"
-#include <string.h>
+﻿#include <string.h>
+#include "tetris.h"
 #include "rankSystem.h"
 #include "rankMenu.h"
+#include "tetrisUtility.h"
+#include "tetrisData.h"
 
 #define COLOR_BLACK   0
 #define COLOR_RED     1
@@ -12,8 +14,17 @@
 #define COLOR_CYAN    6
 #define COLOR_WHITE   7
 
-int BLOCK_DISPLAY_HEIGHT = 6;
-int BLOCK_DISPLAY_Y = 2;
+#define NOTHING	0
+#define QUIT	'q'
+#define FALL	' '
+
+#define MENU_PLAY '1'
+#define MENU_RANK '2'
+#define MENU_RECOMMEND '3'
+#define MENU_EXIT '4'
+
+#define BLOCK_DISPLAY_HEIGHT = 6;
+#define BLOCK_DISPLAY_Y = 2;
 
 static struct sigaction act, oact;
 
@@ -21,15 +32,13 @@ void resetBlock();
 
 void resetGame();
 
-void loadBlocks();
+void initBlockQueue();
 
-void retrieveNextBlock();
+void popBlockQueue();
 
 void printr(char c);
 
 void getNewRank(int score);
-
-int getMinBlockY(char field[HEIGHT][WIDTH], int shapeId, int rotation, int y, int x);
 
 void redrawCurrentBlock();
 
@@ -280,34 +289,6 @@ char menu() {
 	return wgetch(stdscr);
 }
 
-//week 1
-int canPlaceBlock(char f[HEIGHT][WIDTH],int currentBlock,int blockRotation, int blockY, int blockX) {
-	int i,j,ret=1;
-	for (i = 0; i < 4; i ++) {
-		for (j = 0; j < 4; j ++) {
-			int isBlock = block[currentBlock][blockRotation][j][i];
-			int isField = f[blockY + j][blockX + i];
-
-			if (isBlock && isField) {
-				return 0;
-			}
-
-			if (isBlock) {
-				int below = (blockY + j == HEIGHT);
-				int left = (blockX + i == -1);
-				int right = (blockX + i == WIDTH);
-
-				if (below || left || right) {
-					return 0;
-				}
-			}
-		}
-	}
-
-	return 1;
-}
-
-//week 1
 void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRotation, int blockY, int blockX) {
 	int i,j;
 	int blk = currentBlock,rot = blockRotation, y = blockY, x = blockX;
@@ -331,7 +312,7 @@ void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRota
 	redrawShadow();
 	redrawCurrentBlock();
 }
-//week 1
+
 void BlockDown(int sig) {
 	int drawFlag=0;
 	int i, j;
@@ -349,7 +330,7 @@ void BlockDown(int sig) {
 		score += deleteLinesAndGetScore(field);
 
 		// Retrieve next block, reinit block state, and update queue
-		retrieveNextBlock();
+		popBlockQueue();
 		resetBlock();
 
 		redrawBlockPreview();
@@ -360,48 +341,6 @@ void BlockDown(int sig) {
 	}
 	timedOut=0;
 }
-
-int addBlockToFieldAndGetScore(char field[HEIGHT][WIDTH], int shapeId,int rotation, int y, int x) {
-	int i,j;
-	int touched = 0;
-	for (i=0; i<4; i++) {
-		for (j=0; j<4; j++) {
-			int isBlock = block[shapeId][rotation][j][i];
-
-			if (isBlock) {
-				field[y + j][x + i] = 1;
-			}
-		}
-	}
-	return 10 * touched; // doesn't matter
-}
-
-//week 1
-int deleteLinesAndGetScore(char field[HEIGHT][WIDTH]) {
-	int i,j,k;
-	int lineIsFull;
-	int count=0;
-	for (j=1; j<HEIGHT; j++) {
-		lineIsFull = 1;
-		for (i=0; i<WIDTH; i++) {
-			if (!field[j][i]) {
-				lineIsFull = 0;
-				break;
-			}
-		}
-		if (lineIsFull) {
-			count ++;
-			for (k=j;k>0;k--) {
-				for (i=0;i<WIDTH;i++) {
-					field[k][i] = field[k - 1][i];
-				}
-			}
-		}
-	}
-
-	return 100 * count * count;
-}
-
 void redrawShadow() {
 	attron(COLOR_PAIR(COLOR_MAGENTA));
 	drawBlockOnField(getMinBlockY(field, nextBlock[0], blockRotation, blockY, blockX),
@@ -426,17 +365,17 @@ void resetGame() {
 	gameOver=0;
 	timedOut=0;
 
+	initBlockQueue();
 	resetBlock();
-	loadBlocks();
 }
 
-void loadBlocks() {
+void initBlockQueue() {
 	for (int i = 0; i < BLOCK_NUM; ++ i) {
 		nextBlock[i] = rand() % NUM_OF_SHAPE;
 	}
 }
 
-void retrieveNextBlock() {
+void popBlockQueue() {
 	for (int i = 0; i < BLOCK_NUM - 1; ++ i) {
 		nextBlock[i] = nextBlock[i + 1];
 	}
@@ -448,12 +387,6 @@ void printr(char c) {
 	attron(A_REVERSE);
 	printw("%c", c);
 	attroff(A_REVERSE);
-}
-
-int getMinBlockY(char field[HEIGHT][WIDTH], int shapeId, int rotation, int y, int x) {
-	while (canPlaceBlock(field, shapeId, rotation, ++ y, x));
-	
-	return y - 1;
 }
 
 void redrawCurrentBlock() { 
