@@ -11,6 +11,12 @@
 
 
 #define CHILDREN_MAX 36
+char field[HEIGHT][WIDTH];
+int nextBlock[BLOCK_NUM];
+int blockRotation,blockY,blockX;	/* 현재 블럭의 회전, 블럭의 Y 좌표, 블럭의 X 좌표*/
+int score;			/* 점수가 저장*/
+int gameOver=0;			/* 게임이 종료되면 1로 setting된다.*/
+int timedOut;
 
 void DrawOutline();
 
