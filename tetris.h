@@ -1,7 +1,6 @@
 #ifndef _TETRIS_H_
 #define _TETRIS_H_
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -27,12 +26,6 @@
 #define MENU_EXIT '4'
 
 #define CHILDREN_MAX 36
-
-typedef struct _RecNode{
-	int lv,score;
-	char (*f)[WIDTH];
-	struct _RecNode *c[CHILDREN_MAX];
-} RecNode;
 
 /* [blockShapeID][# of rotate][][]*/
 const char block[NUM_OF_SHAPE][NUM_OF_ROTATE][BLOCK_HEIGHT][BLOCK_WIDTH] ={
@@ -138,12 +131,11 @@ const char block[NUM_OF_SHAPE][NUM_OF_ROTATE][BLOCK_HEIGHT][BLOCK_WIDTH] ={
 
 char field[HEIGHT][WIDTH];	/* 테트리스의 메인 게임 화면 */
 int nextBlock[BLOCK_NUM];	/* 현재 블럭의 ID와 다음 블럭의 ID들을 저장; [0]: 현재 블럭; [1]: 다음 블럭 */
-int blockRotate,blockY,blockX;	/* 현재 블럭의 회전, 블럭의 Y 좌표, 블럭의 X 좌표*/
+int blockRotation,blockY,blockX;	/* 현재 블럭의 회전, 블럭의 Y 좌표, 블럭의 X 좌표*/
 int score;			/* 점수가 저장*/
 int gameOver=0;			/* 게임이 종료되면 1로 setting된다.*/
 int timedOut;
 int recommendR,recommendY,recommendX; // 추천 블럭 배치 정보. 차례대로 회전, Y 좌표, X 좌표
-RecNode *recRoot;
 
 /***********************************************************
  *	테트리스의 모든  global 변수를 초기화 해준다.
@@ -204,7 +196,7 @@ void BlockDown(int sig);
  *	return	: (int) 입력에 대한 블럭 움직임이 가능하면 1
  *		  가능하지 않으면 0을 return 한다.
  ***********************************************************/
-int CheckToMove(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX);
+int CheckToMove(char f[HEIGHT][WIDTH],int currentBlock,int blockRotation, int blockY, int blockX);
 
 /***********************************************************
  *	테트리스에서 command에 의해 바뀐 부분만 다시 그려준다.
@@ -216,7 +208,7 @@ int CheckToMove(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int bloc
  *		  (int) 블럭의 X좌표
  *	return	: none
  ***********************************************************/
-void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRotate, int blockY, int blockX);
+void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRotation, int blockY, int blockX);
 
 /***********************************************************
  *	테트리스의 블럭이 쌓이는 field를 그려준다.
@@ -234,7 +226,7 @@ void DrawField();
  *		  (int) 블럭의 X좌표
  *	return	: none
  ***********************************************************/
-int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX);
+int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotation, int blockY, int blockX);
 
 /***********************************************************
  *	완전히 채워진 Line을 삭제하고 점수를 매겨준다.
@@ -284,7 +276,7 @@ void DrawBox(int y,int x, int height, int width);
  *		  (char) 블록을 그릴 패턴 모양
  *	return	: none
  ***********************************************************/
-void DrawBlock(int y, int x, int blockID,int blockRotate,char tile);
+void DrawBlock(int y, int x, int blockID,int blockRotation,char tile);
 
 /***********************************************************
  *	블록이 떨어질 위치를 미리 보여준다.
@@ -294,7 +286,7 @@ void DrawBlock(int y, int x, int blockID,int blockRotate,char tile);
  *		  (int) 블록의 회전 횟수
  *	return	: none
  ***********************************************************/
-void DrawShadow(int y, int x, int blockID,int blockRotate);
+void DrawShadow(int y, int x, int blockID,int blockRotation);
 
 /***********************************************************
  *	테트리스 게임을 시작한다.
@@ -317,13 +309,6 @@ char menu();
  ***********************************************************/
 void rank();
 
-
-/***********************************************************
- *	추천 블럭 배치를 구한다.
- *	input	: (RecNode*) 추천 트리의 루트
- *	return	: (int) 추천 블럭 배치를 따를 때 얻어지는 예상 스코어
- ***********************************************************/
-int recommend(RecNode *root);
 
 /***********************************************************
  *	추천 기능에 따라 블럭을 배치하여 진행하는 게임을 시작한다.

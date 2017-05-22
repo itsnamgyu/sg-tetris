@@ -1,4 +1,4 @@
-#include "rank.h"
+#include "rankSystem.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

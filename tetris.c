@@ -1,6 +1,6 @@
 ﻿#include "tetris.h"
 #include <string.h>
-#include "rank.h"
+#include "rankSystem.h"
 
 int BLOCK_DISPLAY_HEIGHT = 6;
 int BLOCK_DISPLAY_Y = 2;
@@ -58,8 +58,8 @@ void InitTetris() {
 
 	DrawOutline();
 	DrawField();
-	DrawBlock(blockY,blockX,nextBlock[0],blockRotate,' ');
-	DrawShadow(blockY, blockX, nextBlock[0], blockRotate);
+	DrawBlock(blockY,blockX,nextBlock[0],blockRotation,' ');
+	DrawShadow(blockY, blockX, nextBlock[0], blockRotation);
 	DrawNextBlock(nextBlock);
 	PrintScore(score);
 }
@@ -118,32 +118,32 @@ int ProcessCommand(int command) {
 			ret = QUIT;
 			break;
 		case FALL:
-			while(CheckToMove(field, nextBlock[0], blockRotate, blockY + 1, blockX)) {
+			while(CheckToMove(field, nextBlock[0], blockRotation, blockY + 1, blockX)) {
 				blockY ++;
 			}
 			BlockDown(0); // trash value 0
 			break;
 		case KEY_UP:
-			if ((drawFlag = CheckToMove(field,nextBlock[0],(blockRotate+1)%4,blockY,blockX)))
-				blockRotate=(blockRotate+1)%4;
+			if ((drawFlag = CheckToMove(field,nextBlock[0],(blockRotation+1)%4,blockY,blockX)))
+				blockRotation=(blockRotation+1)%4;
 			break;
 		case KEY_DOWN:
-			if ((drawFlag = CheckToMove(field,nextBlock[0],blockRotate,blockY+1,blockX)))
+			if ((drawFlag = CheckToMove(field,nextBlock[0],blockRotation,blockY+1,blockX)))
 				blockY++;
 			break;
 		case KEY_RIGHT:
-			if ((drawFlag = CheckToMove(field,nextBlock[0],blockRotate,blockY,blockX+1)))
+			if ((drawFlag = CheckToMove(field,nextBlock[0],blockRotation,blockY,blockX+1)))
 				blockX++;
 			break;
 		case KEY_LEFT:
-			if ((drawFlag = CheckToMove(field,nextBlock[0],blockRotate,blockY,blockX-1)))
+			if ((drawFlag = CheckToMove(field,nextBlock[0],blockRotation,blockY,blockX-1)))
 				blockX--;
 			break;
 		default:
 			break;
 	}
 
-	if (drawFlag) DrawChange(field,command,nextBlock[0],blockRotate,blockY,blockX);
+	if (drawFlag) DrawChange(field,command,nextBlock[0],blockRotation,blockY,blockX);
 
 	return ret;	
 }
@@ -188,11 +188,11 @@ void DrawNextBlock(int *nextBlock) {
 	}
 }
 
-void DrawBlock(int y, int x, int blockID,int blockRotate,char tile) {
+void DrawBlock(int y, int x, int blockID,int blockRotation,char tile) {
 	int i,j;
 	for (i=0;i<4;i++) {
 		for (j=0;j<4;j++) {
-			if (block[blockID][blockRotate][i][j]==1 && i+y>=0) {
+			if (block[blockID][blockRotation][i][j]==1 && i+y>=0) {
 				move(i+y+1,j+x+1);
 				attron(A_REVERSE);
 				printw("%c",tile);
@@ -268,11 +268,11 @@ char menu() {
 }
 
 //week 1
-int CheckToMove(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX) {
+int CheckToMove(char f[HEIGHT][WIDTH],int currentBlock,int blockRotation, int blockY, int blockX) {
 	int i,j,ret=1;
 	for (i = 0; i < 4; i ++) {
 		for (j = 0; j < 4; j ++) {
-			int isBlock = block[currentBlock][blockRotate][j][i];
+			int isBlock = block[currentBlock][blockRotation][j][i];
 			int isField = f[blockY + j][blockX + i];
 
 			if (isBlock && isField) {
@@ -295,9 +295,9 @@ int CheckToMove(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int bloc
 }
 
 //week 1
-void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRotate, int blockY, int blockX) {
+void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRotation, int blockY, int blockX) {
 	int i,j;
-	int blk = currentBlock,rot = blockRotate, y = blockY, x = blockX;
+	int blk = currentBlock,rot = blockRotation, y = blockY, x = blockX;
 	int oldShadowY;
 	switch(command) {
 		case KEY_UP:
@@ -315,8 +315,8 @@ void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRota
 	} 
 	// TODO
 	DrawField();
-	DrawBlock(blockY,blockX,currentBlock,blockRotate,' ');
-	DrawShadow(blockY,blockX,currentBlock, blockRotate);
+	DrawBlock(blockY,blockX,currentBlock,blockRotation,' ');
+	DrawShadow(blockY,blockX,currentBlock, blockRotation);
 	move(HEIGHT,WIDTH+10);
 }
 //week 1
@@ -324,22 +324,22 @@ void BlockDown(int sig) {
 	int drawFlag=0;
 	int i, j;
 	
-	if ((drawFlag = CheckToMove(field,nextBlock[0],blockRotate,blockY+1,blockX))) {
+	if ((drawFlag = CheckToMove(field,nextBlock[0],blockRotation,blockY+1,blockX))) {
 		// Go down
 		blockY ++;
-		DrawChange(field,KEY_DOWN,nextBlock[0],blockRotate,blockY,blockX);
+		DrawChange(field,KEY_DOWN,nextBlock[0],blockRotation,blockY,blockX);
 	} else {
 		if (blockY == -1) {
 			gameOver = 1;
 		}
 		// Can't go down
 
-		AddBlockToField(field, nextBlock[0], blockRotate, blockY, blockX);
+		AddBlockToField(field, nextBlock[0], blockRotation, blockY, blockX);
 
 		// Calculate extra score
 		for (i = 0; i < 4; i ++) {
 			for (j = 0; j < 4; j ++) {
-				int isBlock = block[nextBlock[0]][blockRotate][j][i];
+				int isBlock = block[nextBlock[0]][blockRotation][j][i];
 				int isBottom = (blockY + j == HEIGHT - 1);
 
 				score += (isBlock && isBottom) * 10;
@@ -356,18 +356,18 @@ void BlockDown(int sig) {
 		DrawNextBlock(nextBlock);
 		PrintScore(score);
 		DrawField();
-		DrawBlock(blockY,blockX,nextBlock[0],blockRotate,' ');
-		DrawShadow(blockY,blockX,nextBlock[0],blockRotate);
+		DrawBlock(blockY,blockX,nextBlock[0],blockRotation,' ');
+		DrawShadow(blockY,blockX,nextBlock[0],blockRotation);
 	}
 	timedOut=0;
 }
 //week 1
-int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotate, int blockY, int blockX) {
+int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotation, int blockY, int blockX) {
 	int i,j;
 	int touched = 0;
 	for (i=0;i<4;i++) {
 		for (j=0;j<4;j++) {
-			int isBlock = block[currentBlock][blockRotate][j][i];
+			int isBlock = block[currentBlock][blockRotation][j][i];
 
 			if (isBlock) {
 				f[blockY + j][blockX + i] = 1;
@@ -402,15 +402,15 @@ int DeleteLine(char f[HEIGHT][WIDTH]) {
 	return 100 * count * count;
 }
 
-void DrawShadow(int y, int x, int blockID,int blockRotate) {
-	while(CheckToMove(field, nextBlock[0], blockRotate, y + 1, x)) {
+void DrawShadow(int y, int x, int blockID,int blockRotation) {
+	while(CheckToMove(field, nextBlock[0], blockRotation, y + 1, x)) {
 		y ++;
 	}
 	
 	int i, j; 
 	for (i = 0; i < 4; i ++) {
 		for (j = 0; j < 4; j ++) {
-			if (block[blockID][blockRotate][i][j]==1 && i+y>=0) {
+			if (block[blockID][blockRotation][i][j]==1 && i+y>=0) {
 				move(i+y+1,j+x+1);
 				attron(A_REVERSE);
 				printw("%c",'/');
@@ -444,24 +444,8 @@ void rank() {
 	}
 }
 
-void DrawRecommend(int y, int x, int blockID,int blockRotate) {
-	// user code
-}
-
-int recommend(RecNode *root) {
-	int max=0; // 미리 보이는 블럭의 추천 배치까지 고려했을 때 얻을 수 있는 최대 점수
-
-	// user code
-
-	return max;
-}
-
-void recommendedPlay() {
-	// user code
-}
-
 void resetBlock(){
-	blockRotate=0;
+	blockRotation=0;
 	blockY=-1;
 	blockX=WIDTH/2-2;
 }
