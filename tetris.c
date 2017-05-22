@@ -20,6 +20,8 @@ void printr(char c);
 
 void getNewRank(int score);
 
+int getMinBlockY(char field[HEIGHT][WIDTH], int shapeId, int rotation, int y, int x);
+
 int main() {
 	int exit = 0;
 
@@ -48,36 +50,9 @@ int main() {
 	return 0;
 }
 
-void InitTetris() {
-	resetGame();
-
-	DrawOutline();
-	DrawField();
-	drawBlock(blockY, blockX, nextBlock[0], blockRotation, ' ');
-	DrawShadow(blockY, blockX, nextBlock[0], blockRotation);
-	DrawNextBlock(nextBlock);
-	PrintScore(score);
-}
-
-void DrawOutline() {	
-	int i,j;
-	drawBox(0,0,HEIGHT,WIDTH);
-
-	/* next block을 보여주는 공간의 태두리를 그린다.*/
-	move(BLOCK_DISPLAY_Y,WIDTH+10);
-	printw("NEXT BLOCK");
-	for (i = 0; i < BLOCK_NUM - 1; i ++) {
-		drawBox(BLOCK_DISPLAY_Y + i * BLOCK_DISPLAY_HEIGHT + 1,WIDTH+10,4,8);
-	}
-
-	/* score를 보여주는 공간의 태두리를 그린다.*/
-	move(BLOCK_DISPLAY_Y + (BLOCK_NUM - 1) * BLOCK_DISPLAY_HEIGHT + 1,WIDTH+10);
-	printw("SCORE");
-	drawBox(BLOCK_DISPLAY_Y + (BLOCK_NUM - 1) * BLOCK_DISPLAY_HEIGHT + 2,WIDTH+10,1,8);
-}
-
 int GetCommand() {
 	int command;
+
 	command = wgetch(stdscr);
 	switch(command) {
 		case KEY_UP:
@@ -99,6 +74,7 @@ int GetCommand() {
 			command = NOTHING;
 			break;
 	}
+
 	return command;
 }
 
@@ -111,25 +87,23 @@ int ProcessCommand(int command) {
 			ret = QUIT;
 			break;
 		case FALL:
-			while(CheckToMove(field, nextBlock[0], blockRotation, blockY + 1, blockX)) {
-				blockY ++;
-			}
+			blockY = getMinBlockY(field, nextBlock[0], blockRotation, blockY, blockX);
 			BlockDown(0); // trash value 0
 			break;
 		case KEY_UP:
-			if ((drawFlag = CheckToMove(field,nextBlock[0],(blockRotation+1)%4,blockY,blockX)))
+			if ((drawFlag = canPlaceBlock(field,nextBlock[0],(blockRotation+1)%4,blockY,blockX)))
 				blockRotation=(blockRotation+1)%4;
 			break;
 		case KEY_DOWN:
-			if ((drawFlag = CheckToMove(field,nextBlock[0],blockRotation,blockY+1,blockX)))
+			if ((drawFlag = canPlaceBlock(field,nextBlock[0],blockRotation,blockY+1,blockX)))
 				blockY++;
 			break;
 		case KEY_RIGHT:
-			if ((drawFlag = CheckToMove(field,nextBlock[0],blockRotation,blockY,blockX+1)))
+			if ((drawFlag = canPlaceBlock(field,nextBlock[0],blockRotation,blockY,blockX+1)))
 				blockX++;
 			break;
 		case KEY_LEFT:
-			if ((drawFlag = CheckToMove(field,nextBlock[0],blockRotation,blockY,blockX-1)))
+			if ((drawFlag = canPlaceBlock(field,nextBlock[0],blockRotation,blockY,blockX-1)))
 				blockX--;
 			break;
 		default:
@@ -141,15 +115,13 @@ int ProcessCommand(int command) {
 	return ret;	
 }
 
-void DrawField() {
+void redrawField() {
 	int i,j;
 	for (j=0;j<HEIGHT;j++) {
 		move(j+1,1);
 		for (i=0;i<WIDTH;i++) {
 			if (field[j][i]) {
-				attron(A_REVERSE);
-				printw(" ");
-				attroff(A_REVERSE);
+				printr(' ');
 			}
 			else printw(".");
 		}
@@ -157,7 +129,7 @@ void DrawField() {
 }
 
 
-void PrintScore(int score) {
+void redrawScore(int score) {
 	move(BLOCK_DISPLAY_Y + (BLOCK_NUM - 1) * BLOCK_DISPLAY_HEIGHT + 3,WIDTH+11);
 	printw("%8d",score);
 }
@@ -181,20 +153,22 @@ void DrawNextBlock(int *nextBlock) {
 	}
 }
 
-void drawBlock(int y, int x, int blockID, int blockRotation, char tile) {
+void drawBlock(int y, int x, int shapeId, int rotation, char tile) {
 	int i,j;
-	for (i=0;i<4;i++) {
-		for (j=0;j<4;j++) {
-			if (block[blockID][blockRotation][i][j]==1 && i+y>=0) {
-				move(i+y+1,j+x+1);
+	for (i=0; i<4; i++) {
+		for (j=0; j<4; j++) {
+			if (block[shapeId][rotation][i][j]==1 && i+y>=0) {
+				move(i+y,j+x);
 				attron(A_REVERSE);
 				printw("%c",tile);
 				attroff(A_REVERSE);
 			}
 		}
 	}
+}
 
-	move(HEIGHT,WIDTH+10);
+void drawBlockOnField(int y, int x, int shapeId, int rotation, char tile) {
+	drawBlock(y + 1, x + 1, shapeId, rotation, tile);
 }
 
 void drawBox(int y,int x, int height, int width) {
@@ -222,7 +196,30 @@ void play() {
 	clear();
 	act.sa_handler = BlockDown;
 	sigaction(SIGALRM,&act,&oact);
-	InitTetris();
+	resetGame();
+
+	int i,j;
+
+	// Draw field box 
+	drawBox(0,0,HEIGHT,WIDTH);
+
+	// Draw preview box
+	move(BLOCK_DISPLAY_Y,WIDTH+10);
+	printw("NEXT BLOCK");
+	for (i = 0; i < BLOCK_NUM - 1; i ++) {
+		drawBox(BLOCK_DISPLAY_Y + i * BLOCK_DISPLAY_HEIGHT + 1,WIDTH+10,4,8);
+	}
+
+	// Draw score box
+	move(BLOCK_DISPLAY_Y + (BLOCK_NUM - 1) * BLOCK_DISPLAY_HEIGHT + 1,WIDTH+10);
+	printw("SCORE");
+	//drawBox(BLOCK_DISPLAY_Y + (BLOCK_NUM - 1) * BLOCK_DISPLAY_HEIGHT + 2,WIDTH+10,1,8);
+	redrawField();
+	drawBlockOnField(blockY, blockX, nextBlock[0], blockRotation, ' ');
+	redrawShadow();
+	DrawNextBlock(nextBlock);
+	redrawScore(score);
+
 	do{
 		if (timedOut==0) {
 			alarm(1);
@@ -244,8 +241,8 @@ void play() {
 
 	alarm(0);
 	getch();
-	drawBox(HEIGHT/2-1,WIDTH/2-5,1,10);
-	move(HEIGHT/2,WIDTH/2-4);
+	drawBox(HEIGHT/2-1, WIDTH/2-5, 1, 10);
+	move(HEIGHT/2, WIDTH/2-4);
 	printw("GameOver!!");
 	refresh();
 	getch();
@@ -261,7 +258,7 @@ char menu() {
 }
 
 //week 1
-int CheckToMove(char f[HEIGHT][WIDTH],int currentBlock,int blockRotation, int blockY, int blockX) {
+int canPlaceBlock(char f[HEIGHT][WIDTH],int currentBlock,int blockRotation, int blockY, int blockX) {
 	int i,j,ret=1;
 	for (i = 0; i < 4; i ++) {
 		for (j = 0; j < 4; j ++) {
@@ -307,9 +304,9 @@ void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRota
 			break;
 	} 
 	// TODO
-	DrawField();
-	drawBlock(blockY,blockX,currentBlock,blockRotation,' ');
-	DrawShadow(blockY,blockX,currentBlock, blockRotation);
+	redrawField();
+	drawBlockOnField(blockY,blockX,currentBlock,blockRotation,' ');
+	redrawShadow();
 	move(HEIGHT,WIDTH+10);
 }
 //week 1
@@ -317,7 +314,7 @@ void BlockDown(int sig) {
 	int drawFlag=0;
 	int i, j;
 	
-	if ((drawFlag = CheckToMove(field,nextBlock[0],blockRotation,blockY+1,blockX))) {
+	if ((drawFlag = canPlaceBlock(field,nextBlock[0],blockRotation,blockY+1,blockX))) {
 		// Go down
 		blockY ++;
 		DrawChange(field,KEY_DOWN,nextBlock[0],blockRotation,blockY,blockX);
@@ -327,7 +324,7 @@ void BlockDown(int sig) {
 		}
 		// Can't go down
 
-		AddBlockToField(field, nextBlock[0], blockRotation, blockY, blockX);
+		addBlockToField(field, nextBlock[0], blockRotation, blockY, blockX);
 
 		// Calculate extra score
 		for (i = 0; i < 4; i ++) {
@@ -347,23 +344,23 @@ void BlockDown(int sig) {
 		score += deleteLinesAndGetScore(field);
 
 		DrawNextBlock(nextBlock);
-		PrintScore(score);
-		DrawField();
-		drawBlock(blockY,blockX,nextBlock[0],blockRotation,' ');
-		DrawShadow(blockY,blockX,nextBlock[0],blockRotation);
+		redrawScore(score);
+		redrawField();
+		drawBlockOnField(blockY,blockX,nextBlock[0],blockRotation,' ');
+		redrawShadow();
 	}
 	timedOut=0;
 }
 //week 1
-int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotation, int blockY, int blockX) {
+int addBlockToField(char field[HEIGHT][WIDTH], int shapeId,int rotation, int y, int x) {
 	int i,j;
 	int touched = 0;
-	for (i=0;i<4;i++) {
-		for (j=0;j<4;j++) {
-			int isBlock = block[currentBlock][blockRotation][j][i];
+	for (i=0; i<4; i++) {
+		for (j=0; j<4; j++) {
+			int isBlock = block[shapeId][rotation][j][i];
 
 			if (isBlock) {
-				f[blockY + j][blockX + i] = 1;
+				field[y + j][x + i] = 1;
 			}
 		}
 	}
@@ -395,22 +392,9 @@ int deleteLinesAndGetScore(char f[HEIGHT][WIDTH]) {
 	return 100 * count * count;
 }
 
-void DrawShadow(int y, int x, int blockID,int blockRotation) {
-	while(CheckToMove(field, nextBlock[0], blockRotation, y + 1, x)) {
-		y ++;
-	}
-	
-	int i, j; 
-	for (i = 0; i < 4; i ++) {
-		for (j = 0; j < 4; j ++) {
-			if (block[blockID][blockRotation][i][j]==1 && i+y>=0) {
-				move(i+y+1,j+x+1);
-				attron(A_REVERSE);
-				printw("%c",'/');
-				attroff(A_REVERSE);
-			}
-		}
-	}
+void redrawShadow() {
+	drawBlockOnField(getMinBlockY(field, nextBlock[0], blockRotation, blockY, blockX),
+			blockX, nextBlock[0], blockRotation, '/');
 }
 
 void resetBlock(){
@@ -454,3 +438,9 @@ void printr(char c){
 	attroff(A_REVERSE);
 }
 
+
+int getMinBlockY(char field[HEIGHT][WIDTH], int shapeId, int rotation, int y, int x){
+	while (canPlaceBlock(field, shapeId, rotation, ++ y, x));
+	
+	return y - 1;
+}

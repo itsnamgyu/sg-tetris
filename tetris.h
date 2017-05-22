@@ -137,18 +137,6 @@ int gameOver=0;			/* 게임이 종료되면 1로 setting된다.*/
 int timedOut;
 int recommendR,recommendY,recommendX; // 추천 블럭 배치 정보. 차례대로 회전, Y 좌표, X 좌표
 
-/***********************************************************
- *	테트리스의 모든  global 변수를 초기화 해준다.
- *	input	: none
- *	return	: none
- ***********************************************************/
-void InitTetris();
-
-/***********************************************************
- *	테트리스의 모든  interface를 그려준다.
- *	input	: none
- *	return	: none
- ***********************************************************/
 void DrawOutline();
 
 /***********************************************************
@@ -186,17 +174,10 @@ int ProcessCommand(int command);
  ***********************************************************/
 void BlockDown(int sig);
 
-/***********************************************************
- *	입력된 움직임이 가능한지를 판단해주는 함수.
- *	input	: (char[][]) 블럭의 움직임을 확인할 필드
- *		  (int) 현재 블럭의 모양 ID
- *		  (int) 블럭의 회전 횟수
- *		  (int) 블럭의 Y좌표
- *		  (int) 블럭의 X좌표
- *	return	: (int) 입력에 대한 블럭 움직임이 가능하면 1
- *		  가능하지 않으면 0을 return 한다.
- ***********************************************************/
-int CheckToMove(char f[HEIGHT][WIDTH],int currentBlock,int blockRotation, int blockY, int blockX);
+/*
+ * Return whether a block can be placed on the field
+ */
+int canPlaceBlock(char field[HEIGHT][WIDTH], int shape, int rotation, int y, int x);
 
 /***********************************************************
  *	테트리스에서 command에 의해 바뀐 부분만 다시 그려준다.
@@ -215,7 +196,7 @@ void DrawChange(char f[HEIGHT][WIDTH],int command,int currentBlock,int blockRota
  *	input	: none
  *	return	: none
  ***********************************************************/
-void DrawField();
+void redrawField();
 
 /***********************************************************
  *	떨어지는 블럭을 field에 더해준다.
@@ -226,7 +207,7 @@ void DrawField();
  *		  (int) 블럭의 X좌표
  *	return	: none
  ***********************************************************/
-int AddBlockToField(char f[HEIGHT][WIDTH],int currentBlock,int blockRotation, int blockY, int blockX);
+int addBlockToField(char field[HEIGHT][WIDTH], int shapeId, int rotation, int y, int x);
 
 /***********************************************************
  *	완전히 채워진 Line을 삭제하고 점수를 매겨준다.
@@ -255,7 +236,7 @@ void DrawNextBlock(int *nextBlock);
  *	input	: (int) 출력할 점수
  *	return	: none
  ***********************************************************/
-void PrintScore(int score);
+void redrawScore(int score);
 
 /***********************************************************
  *	해당 좌표(y,x)에 원하는 크기(height,width)의 box를 그린다.
@@ -286,7 +267,7 @@ void drawBlock(int y, int x, int blockID,int blockRotation,char tile);
  *		  (int) 블록의 회전 횟수
  *	return	: none
  ***********************************************************/
-void DrawShadow(int y, int x, int blockID,int blockRotation);
+void redrawShadow();
 
 /***********************************************************
  *	테트리스 게임을 시작한다.
