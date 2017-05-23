@@ -25,7 +25,6 @@ int getY(GameNode *node);
 
 double getOther(GameNode *node);
 
-
 GameNode **getNextMoveNodes(char field[HEIGHT][WIDTH], int shape, int count);
 
 GameNode *getNextMoveAsNode(char field[HEIGHT][WIDTH], int* shapes) {

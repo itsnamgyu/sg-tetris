@@ -31,6 +31,7 @@ int main() {
 
 	srand((unsigned int)time(NULL));
 
+	/*
 	int score;
 	while (1) {
 		// Training weights
@@ -70,12 +71,13 @@ int main() {
 					maxYDeltaWeight);
 		}
 	}
+	*/
 
 	initscr();
 	noecho();
 	keypad(stdscr, TRUE);	
 
-	loadRank();
+	//loadRank();
 
 	// COLOR
 	start_color();
@@ -92,7 +94,7 @@ int main() {
 		}
 	}
 
-	saveRank();
+	//saveRank();
 
 	endwin();
 	system("clear");
@@ -100,9 +102,8 @@ int main() {
 }
 
 char menu() {
-	printw("1. Play\n");
+	printw("1. Manual Play (Press space)\n");
 	printw("2. Rank\n");
-	printw("3. Recommended Play\n");
 	printw("4. Exit\n");
 	return wgetch(stdscr);
 }

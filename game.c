@@ -94,7 +94,6 @@ int startGame(int mode) {
 
 	if (gameMode == 2) {
 		y = nextMoveNode->lastY;
-		//blockFall(1);
 	}
 
 	do {
@@ -216,10 +215,11 @@ void blockFall(int sig) {
 		}
 	}
 
-	if (repeat) {
-		blockFall(1);
-	}
 	timedOut=0;
+
+	if (repeat) {
+		fprintf(stdin, " ");
+	}
 }
 
 void resetBlock() {
