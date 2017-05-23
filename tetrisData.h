@@ -1,7 +1,7 @@
 #ifndef _TETRIS_DATA_
 #define _TETRIS_DATA_
 
-#define WIDTH	10
+#define WIDTH	20
 #define HEIGHT	22
 #define NUM_OF_SHAPE	7
 #define NUM_OF_ROTATE	4

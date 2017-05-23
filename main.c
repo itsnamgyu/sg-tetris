@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "gameAI.h"
 
 #define COLOR_BLACK   0
 #define COLOR_RED     1
@@ -30,16 +31,45 @@ int main() {
 
 	srand((unsigned int)time(NULL));
 
-	/*
-	int i;
-	int sum = 0;
-	int count = 50;
-	for (i = 0; i < count; ++ i) {
-		sum += startGame(3);
+	int score;
+	while (1) {
+		// Training weights
+		bubbleWeight = - 50 - rand() % 100;
+		scoreWeight = (0.75 + rand() % 100 / (double) 200);
+		heightWeight = - rand() % 40;
+		yWeight = -rand() % 40;
+		maxTrenchDepthWeight = - 10 - rand() % 10;
+		trenchSumWeight = - 10 - rand() % 10;
+		maxYDeltaWeight = - 10 - rand() % 10;
+		// Trained weight:
+		bubbleWeight = -86;
+		scoreWeight = 1.05;
+		heightWeight = -6;
+		yWeight = - 11;
+		maxTrenchDepthWeight = - 10;
+		trenchSumWeight = - 16.5;
+		maxYDeltaWeight = - 13;
+		printf("\t\t\tTrying: %.2lf %.2lf %.2lf %.2lf %.2lf %.2lf %.2lf\n",
+				bubbleWeight,
+				scoreWeight,
+				heightWeight,
+				yWeight,
+				maxTrenchDepthWeight,
+				trenchSumWeight,
+				maxYDeltaWeight);
+		score = startGame(3);
+		if (score > 1000) {
+			printf("%8d: ", score);
+			printf("%.2lf %.2lf %.2lf %.2lf %.2lf %.2lf %.2lf\n",
+					bubbleWeight,
+					scoreWeight,
+					heightWeight,
+					yWeight,
+					maxTrenchDepthWeight,
+					trenchSumWeight,
+					maxYDeltaWeight);
+		}
 	}
-	printf("%d\n", sum / count); 
-	return 0;
-	*/
 
 	initscr();
 	noecho();

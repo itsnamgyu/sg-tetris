@@ -56,7 +56,6 @@ void popBlockQueue();
 int startGame(int mode) {
 	gameMode = mode;
 
-	/*
 	if (gameMode == 3) {
 		resetGame();
 		while ((nextMoveNode = getNextMoveAsNode(field, queue))) {
@@ -69,7 +68,6 @@ int startGame(int mode) {
 
 		return score;
 	}
-	*/
 
 	clear();
 	act.sa_handler = blockFall;
@@ -79,20 +77,14 @@ int startGame(int mode) {
 	int submitRank = 1;
 	int i,j;
 
-	drawField(field);
 	if (gameMode) {
 		nextMoveNode = getNextMoveAsNode(field, queue);
-		if (gameMode == 1) {
-			drawRecommendation(nextMoveNode);
-			x = nextMoveNode->lastX;
-			rotation = nextMoveNode->lastRotation;
-		} else if (gameMode == 2) {
-			drawRecommendation(nextMoveNode);
-			x = nextMoveNode->lastX;
-			y = nextMoveNode->lastY;
-			rotation = nextMoveNode->lastRotation;
-		}
+		x = nextMoveNode->lastX;
+		rotation = nextMoveNode->lastRotation;
 	}
+
+	drawField(field);
+	drawRecommendation(nextMoveNode);
 	drawShadow(getMinBlockY(field, queue[0], rotation, y, x), x, queue[0], rotation);
 	drawCurrentBlock(y, x, queue[0], rotation);
 	drawBlockPreview(queue);
@@ -101,7 +93,8 @@ int startGame(int mode) {
 	drawOutline();
 
 	if (gameMode == 2) {
-		blockFall(0);
+		y = nextMoveNode->lastY;
+		//blockFall(1);
 	}
 
 	do {
@@ -175,7 +168,8 @@ int processCommand() {
 void blockFall(int sig) {
 	int drawFlag=0;
 	int i, j;
-	
+	int repeat = 0;
+
 	if ((drawFlag = canPlaceBlock(field,queue[0],rotation,y + 1,x))) {
 		y ++;
 		if (gameMode) {
@@ -197,32 +191,34 @@ void blockFall(int sig) {
 
 		if (gameMode) {
 			nextMoveNode = getNextMoveAsNode(field, queue);
-			x = nextMoveNode->lastX;
-			rotation = nextMoveNode->lastRotation;
+			if (nextMoveNode) {
+				x = nextMoveNode->lastX;
+				rotation = nextMoveNode->lastRotation;
+			}
 		}
 
 		drawBlockPreview(queue);
 		drawScore(score);
 		drawField(field);
-
 		if (gameMode) {
 			if (nextMoveNode) {
 				drawRecommendation(nextMoveNode);
 			}
 		}
-
 		drawShadow(getMinBlockY(field, queue[0], rotation, y, x), x, queue[0], rotation);
 		drawCurrentBlock(y, x, queue[0], rotation);
 
 		if (gameMode == 2) {
 			if (nextMoveNode) {
 				y = nextMoveNode->lastY;
-				blockFall(0);
-				timedOut=0;
 			}
+			repeat = 1;
 		}
 	}
 
+	if (repeat) {
+		blockFall(1);
+	}
 	timedOut=0;
 }
 

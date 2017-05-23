@@ -3,19 +3,17 @@
 #include "tetrisUtility.h"
 #include "stdlib.h"
 
-#define BRANCH 	5
-#define DEPTH	5
-//#define TOTAL	340 // 340
-//#define TOTAL	1364 // 340
-#define TOTAL	3905// 340
+#define BRANCH 	1
+#define DEPTH	1
+#define TOTAL	1
 
-double bubbleWeight = -100;
-double scoreWeight = 1;
-double heightWeight = - 10;
-double yWeight = - 30;
-double maxTrenchDepthWeight = - 20;
-double trenchSumWeight = - 1;
-double maxYDeltaWeight = - 20;
+double 	bubbleWeight = -86;
+double scoreWeight = 1.05;
+double	heightWeight = -6;
+double		yWeight = - 11;
+double maxTrenchDepthWeight = - 10;
+double trenchSumWeight = - 16.5;
+double maxYDeltaWeight = - 13;
 
 GameNode *dropBlockAndGetNewGameNode(char field[HEIGHT][WIDTH], int score, int shape, int y, int x, int rotation);
 
@@ -161,6 +159,8 @@ int getY(GameNode *node) {
 			}
 		}
 	}
+
+	return 0;
 }
 
 double getOther(GameNode *node) {
